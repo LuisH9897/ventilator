@@ -8,10 +8,10 @@ const byte geschwReduzieren = 10; //Geschw. reduzieren
 const byte transistorAnsteurung = 6;  //Ansteuerung des Motors per Transistor (PWM-faehig)
 
 //Variablen
-bool motorAn = 0;
+bool motorAn = 0; //FALSE = 0
 int motorGeschw = 0;  //PWM-Wert: 0-255
 const int startGeschw = 125;  //Startwert
-const int schrittGeschw = 10; //Schrittweite
+const int schrittGeschw = 25; //Schrittweite
 
 // Funktionsdeklarationen:
 void ansteuern();
@@ -29,23 +29,46 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  ansteuern();
 }
 
 //Funktionsdefinitionen
 void ansteuern() {
-  if(digitalRead(einschalten) == LOW) {
-    analogWrite(transistorAnsteurung, startGeschw);
-    if(digitalRead(geschwErhoehen) == LOW) {
-      anfangswert += 10;  //Anfangswert wird um 10 erhoeht und als neuer Wert gespeichert fuer weitere Berechnungen
-      analogWrite(einschalten, anfangswert);
-    }
-    else if (digitalRead(geschwReduzieren) == LOW) {
-      anfangswert -= 10;  //Analog zu geschwErhoehen
-      analogWrite(einschalten, anfangswert);
-    }
+  //Start: Schliesser/NO
+  if(digitalRead(einschalten) == LOW) { //Wenn Taste gedrueckt/geschlossen
+    motorAn = 1;  //TRUE sind alle Werte ausser 0
+    motorGeschw = startGeschw;
+    Serial.println("Motor gestartet");
+    delay(200); //Entprellen
+
+  //Stop: Oeffner (NC, fail-safe)
+  if (digitalRead(ausschalten) == HIGH) { //Wenn Taste gedrueckt/geoeffnet oder Leitung defekt 
+    motorAn = 0;
+    motorGeschw = 0;
+    Serial.println("Motor gesoppt");
+    delay(200); //Entprellen
   }
-  else if (digitalRead(ausschalten) == LOW) {
-    analogWrite(einschalten, 0);
+  }
+
+  //Geschwindigkeit aendern, wenn Motor laeuft
+  if(motorAn) { //Zahlvergleich weggelassen, hier ist die Bed. if(motorAn) gleichbedeutend zu if(motorAn == TRUE)
+    if(digitalRead(geschwErhoehen) == LOW) {
+      motorGeschw = min(255, motorGeschw + schrittGeschw);  //Hier verhindert die min()-Fkt., dass das Tastverhaelnis 
+                                                            //bei der PWM von 0 bis 255 ueberlaeuft. Nach dem Motto: 
+                                                            //"wenn Wert 255 ueberschreittet werden sollte, nimm einfach 255"
+      Serial.print("Geschwindigkeit erhoeht auf ");
+      Serial.print(motorGeschw /100);
+      Serial.println(" Prozent");
+      delay(200); //Entprellen
+    }
+
+    if(digitalRead(geschwReduzieren) == LOW) {
+      motorGeschw = max (0, motorGeschw - schrittGeschw); //Analog zur Geschw.erhoehung. Hier wird verhindert, dass der Motor mit 
+                                                          //negativen Zahlen angesteuert wird
+      Serial.print("Geschwindigkeit reduziert auf ");
+      Serial.print(motorGeschw / 100);
+      Serial.println(" Prozent");
+      delay(200); //Entprellen
+    }
   }
 }
