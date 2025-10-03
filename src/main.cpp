@@ -1,11 +1,17 @@
 #include <Arduino.h>
 
-//Variablenseklarationen/-initialisierungen:
-byte einschalten = 13;  //Pin 13 zum Einschalten
-byte ausschalten = 12;  //Pin 12 zum Ausschalten
-byte geschwErhoehen = 11; //Geschw. erhoehen
-byte geschwReduzieren = 10; //Geschw. reduzieren
-byte transistorAnsteurung = 6;  //Ansteuerung des Motors per Transistor
+//Pinbelegung
+const byte einschalten = 13;  //Pin 13: Start (Schliesser/NO)
+const byte ausschalten = 12;  //Pin 12: Stop (Oeffner/NC)
+const byte geschwErhoehen = 11; //Geschw. erhoehen
+const byte geschwReduzieren = 10; //Geschw. reduzieren
+const byte transistorAnsteurung = 6;  //Ansteuerung des Motors per Transistor (PWM-faehig)
+
+//Variablen
+bool motorAn = 0;
+int motorGeschw = 0;  //PWM-Wert: 0-255
+const int startGeschw = 125;  //Startwert
+const int schrittGeschw = 10; //Schrittweite
 
 // Funktionsdeklarationen:
 void ansteuern();
@@ -18,7 +24,8 @@ void setup() {
   pinMode(transistorAnsteurung, OUTPUT);
 
   //Motor stoppen beim Start
-  analogWrite(einschalten, 0);
+  analogWrite(transistorAnsteurung, 0); //Motor aus beim Start
+  Serial.begin(9600);
 }
 
 void loop() {
