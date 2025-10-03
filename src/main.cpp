@@ -35,30 +35,32 @@ void loop() {
 //Funktionsdefinitionen
 void ansteuern() {
   //Start: Schliesser/NO
-  if(digitalRead(einschalten) == LOW) { //Wenn Taste gedrueckt/geschlossen
+  if(digitalRead(einschalten) == LOW && !motorAn) { //Wenn Taste gedrueckt/geschlossen
     motorAn = 1;  //TRUE sind alle Werte ausser 0
     motorGeschw = startGeschw;
     Serial.println("Motor gestartet");
     delay(200); //Entprellen
+  }
 
   //Stop: Oeffner (NC, fail-safe)
-  if (digitalRead(ausschalten) == HIGH) { //Wenn Taste gedrueckt/geoeffnet oder Leitung defekt 
+  if (digitalRead(ausschalten) == LOW && motorAn) { //Wenn Taste gedrueckt/geoeffnet oder Leitung defekt 
     motorAn = 0;
     motorGeschw = 0;
     Serial.println("Motor gesoppt");
     delay(200); //Entprellen
   }
-  }
 
   //Geschwindigkeit aendern, wenn Motor laeuft
   if(motorAn) { //Zahlvergleich weggelassen, hier ist die Bed. if(motorAn) gleichbedeutend zu if(motorAn == TRUE)
+    analogWrite(transistorAnsteurung, motorGeschw);
+
     if(digitalRead(geschwErhoehen) == LOW) {
       motorGeschw = min(255, motorGeschw + schrittGeschw);  //Hier verhindert die min()-Fkt., dass das Tastverhaelnis 
                                                             //bei der PWM von 0 bis 255 ueberlaeuft. Nach dem Motto: 
                                                             //"wenn Wert 255 ueberschreittet werden sollte, nimm einfach 255"
       Serial.print("Geschwindigkeit erhoeht auf ");
-      Serial.print(motorGeschw /100);
-      Serial.println(" Prozent");
+      Serial.print((motorGeschw  * 100) / 255);
+      Serial.println(" %");
       delay(200); //Entprellen
     }
 
@@ -66,9 +68,11 @@ void ansteuern() {
       motorGeschw = max (0, motorGeschw - schrittGeschw); //Analog zur Geschw.erhoehung. Hier wird verhindert, dass der Motor mit 
                                                           //negativen Zahlen angesteuert wird
       Serial.print("Geschwindigkeit reduziert auf ");
-      Serial.print(motorGeschw / 100);
-      Serial.println(" Prozent");
+      Serial.print((motorGeschw  * 100) / 255);
+      Serial.println(" %");
       delay(200); //Entprellen
     }
+  } else {
+    analogWrite(transistorAnsteurung, 0); //Sonst Motor aus
   }
 }
