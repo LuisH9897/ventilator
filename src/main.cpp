@@ -42,8 +42,10 @@ void ansteuern() {
     delay(200); //Entprellen
   }
 
-  //Stop: Oeffner (NC, fail-safe)
-  if (digitalRead(ausschalten) == LOW && motorAn) { //Wenn Taste gedrueckt/geoeffnet oder Leitung defekt 
+  //Stop: Oeffner (NC, fail-safe) --> im industriellen Kontext
+  //In der Industrie wuerde man einen Oeffner zum Ausschalten verwenden, da ich momentan nur einen Schliesse habe, muss ich
+  //den entsprechenden Pin (hier Pin 12) als Schliesse programmieren
+  if (digitalRead(ausschalten) == LOW && motorAn) { //Wenn Taste gedrueckt/geoeffnet oder Leitung defekt. Hier LOW zum schliessen verwenden (s. oben)
     motorAn = 0;
     motorGeschw = 0;
     Serial.println("Motor gesoppt");
