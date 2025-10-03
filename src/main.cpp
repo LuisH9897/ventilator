@@ -27,9 +27,8 @@ void loop() {
 
 //Funktionsdefinitionen
 void ansteuern() {
-  int anfangswert = 150;  //Anfangswert beim Einschalten des Motors
   if(digitalRead(einschalten) == LOW) {
-    analogWrite(einschalten, anfangswert);
+    analogWrite(transistorAnsteurung, startGeschw);
     if(digitalRead(geschwErhoehen) == LOW) {
       anfangswert += 10;  //Anfangswert wird um 10 erhoeht und als neuer Wert gespeichert fuer weitere Berechnungen
       analogWrite(einschalten, anfangswert);
